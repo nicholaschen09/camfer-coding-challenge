@@ -6,17 +6,41 @@ This script provides functionality to deduplicate a list of JSON objects while r
 - All other structures (dictionaries, nested lists) are considered order-independent
 
 To run the tests:
-    python json_dedupe.py
+    python3 json_dedupe.py
+
+To use the deduplication function in your code:
+    1. Import the solve function:
+        from json_dedupe import solve
+    
+    2. Create a list of dictionaries to deduplicate
+    3. Call the solve function with your list
+    4. The function will return a deduplicated list while preserving the original order of first occurrences
 
 Example usage:
     from json_dedupe import solve
     
+    # Example 1: Simple dictionaries
     input_dicts = [
         {"Name": "John", "Age": 40},
         {"Age": 40, "Name": "John"},  # This will be considered a duplicate
         {"Name": "Nancy", "Age": 60}
     ]
+    result = solve(input_dicts)
     
+    # Example 2: Nested structures
+    input_dicts = [
+        {"a": [{"x": 1}, {"y": 2}], "b": [0, 1]},
+        {"b": [0, 1], "a": [{"y": 2}, {"x": 1}]},  # This will be considered a duplicate
+        {"a": [{"x": 1}, {"y": 2}], "b": [0, 1]}   # This will also be considered a duplicate
+    ]
+    result = solve(input_dicts)
+    
+    # Example 3: Lists of primitives (order matters)
+    input_dicts = [
+        {"nums": [1, 0, 1]},
+        {"nums": [0, 1, 1]},  # This is NOT a duplicate because order matters for primitive lists
+        {"nums": [1, 0, 1]}   # This is a duplicate
+    ]
     result = solve(input_dicts)
 """
 
@@ -29,11 +53,9 @@ from collections import defaultdict
 # Constants for type checking
 PRIMITIVE_TYPES = (int, float, str, bool)
 
-@lru_cache(maxsize=1024)
 def normalize_value(value: Any) -> Any:
     """
     Normalize a value for comparison by sorting dictionaries and lists (except lists of primitives).
-    Uses LRU cache to avoid recomputing the same values multiple times.
     """
     if isinstance(value, dict):
         # Sort dictionary items by key and normalize their values
@@ -51,18 +73,14 @@ def solve(input_dicts: List[Dict]) -> List[Dict]:
     Deduplicate a list of dictionaries while respecting the order rules:
     - Lists of primitives maintain their order
     - Everything else is order-independent
-    
-    Optimizations:
-    - Uses LRU cache for normalize_value
-    - Converts primitive lists to tuples for better hashing
-    - Uses a single pass through the input list
     """
     seen: Set[str] = set()
     output: List[Dict] = []
     
     for d in input_dicts:
-        # Convert dict to normalized JSON string for comparison
-        normalized = json.dumps(normalize_value(d), sort_keys=True)
+        # First normalize the value, then convert to JSON string
+        normalized_value = normalize_value(d)
+        normalized = json.dumps(normalized_value, sort_keys=True)
         if normalized not in seen:
             seen.add(normalized)
             output.append(d)
