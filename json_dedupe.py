@@ -1,3 +1,25 @@
+"""
+JSON Deduplication Tool
+
+This script provides functionality to deduplicate a list of JSON objects while respecting specific ordering rules:
+- Lists of primitive values (numbers, strings, booleans) maintain their original order
+- All other structures (dictionaries, nested lists) are considered order-independent
+
+To run the tests:
+    python json_dedupe.py
+
+Example usage:
+    from json_dedupe import solve
+    
+    input_dicts = [
+        {"Name": "John", "Age": 40},
+        {"Age": 40, "Name": "John"},  # This will be considered a duplicate
+        {"Name": "Nancy", "Age": 60}
+    ]
+    
+    result = solve(input_dicts)
+"""
+
 import unittest
 from typing import List, Dict, Any
 import json
