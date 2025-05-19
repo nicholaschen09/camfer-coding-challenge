@@ -8,18 +8,24 @@ A Python utility for deduplicating JSON objects while respecting specific orderi
 - Maintains order for lists of primitive values (numbers, strings, booleans)
 - Treats other structures (dictionaries, nested lists) as order-independent
 - Includes comprehensive test suite
+- Type hints for better IDE support
 
 ## Requirements
 
 - Python 3.x
+- typing-extensions (for enhanced type hints)
 
 ## Installation
 
-No additional dependencies required. Simply clone the repository:
-
+1. Clone the repository:
 ```bash
 git clone <repository-url>
 cd <repository-directory>
+```
+
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
 ```
 
 ## Usage
@@ -34,6 +40,7 @@ python json_dedupe.py
 
 ### Using in Your Code
 
+Basic usage:
 ```python
 from json_dedupe import solve
 
@@ -45,6 +52,32 @@ input_dicts = [
 ]
 
 # Get deduplicated result
+result = solve(input_dicts)
+```
+
+Advanced usage with nested structures:
+```python
+from json_dedupe import solve
+
+# Example with nested structures
+input_dicts = [
+    {
+        "user": {
+            "name": "John",
+            "preferences": ["reading", "gaming"]
+        },
+        "scores": [1, 2, 3]
+    },
+    {
+        "user": {
+            "preferences": ["gaming", "reading"],
+            "name": "John"
+        },
+        "scores": [1, 2, 3]
+    }
+]
+
+# This will return only one item since the nested structures are considered equivalent
 result = solve(input_dicts)
 ```
 
@@ -66,6 +99,28 @@ The tool uses a normalization process to compare JSON objects:
 3. Other lists are sorted after normalization
 4. The normalized form is used to identify duplicates
 
+## Performance Considerations
+
+- Time Complexity: O(n * m * log(m)) where:
+  - n is the number of input dictionaries
+  - m is the size of the largest dictionary
+- Space Complexity: O(n * m) for storing the normalized forms
+- Best for: Small to medium-sized JSON objects
+- Consider using alternative solutions for very large datasets
+
 ## Contributing
 
-Feel free to submit issues and enhancement requests! 
+Feel free to submit issues and enhancement requests!
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Author
+
+[Your Name/Organization]
+
+## Acknowledgments
+
+- Thanks to the Python community for the excellent typing support
+- Inspired by the need for reliable JSON deduplication in data processing pipelines 
