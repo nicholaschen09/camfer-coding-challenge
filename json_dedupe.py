@@ -21,21 +21,27 @@ Example usage:
 """
 
 import unittest
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Set, Tuple
 import json
+from functools import lru_cache
 from collections import defaultdict
 
+# Constants for type checking
+PRIMITIVE_TYPES = (int, float, str, bool)
+
+@lru_cache(maxsize=1024)
 def normalize_value(value: Any) -> Any:
     """
     Normalize a value for comparison by sorting dictionaries and lists (except lists of primitives).
+    Uses LRU cache to avoid recomputing the same values multiple times.
     """
     if isinstance(value, dict):
         # Sort dictionary items by key and normalize their values
         return tuple(sorted((k, normalize_value(v)) for k, v in value.items()))
     elif isinstance(value, list):
         # Check if list contains only primitives
-        if all(isinstance(x, (int, float, str, bool)) for x in value):
-            return value  # Keep primitive lists as is
+        if all(isinstance(x, PRIMITIVE_TYPES) for x in value):
+            return tuple(value)  # Convert to tuple for hashability
         # For non-primitive lists, sort after normalizing each element
         return tuple(sorted(normalize_value(x) for x in value))
     return value
@@ -45,9 +51,14 @@ def solve(input_dicts: List[Dict]) -> List[Dict]:
     Deduplicate a list of dictionaries while respecting the order rules:
     - Lists of primitives maintain their order
     - Everything else is order-independent
+    
+    Optimizations:
+    - Uses LRU cache for normalize_value
+    - Converts primitive lists to tuples for better hashing
+    - Uses a single pass through the input list
     """
-    seen = set()
-    output = []
+    seen: Set[str] = set()
+    output: List[Dict] = []
     
     for d in input_dicts:
         # Convert dict to normalized JSON string for comparison
